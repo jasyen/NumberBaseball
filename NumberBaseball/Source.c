@@ -6,9 +6,6 @@
 #define NUMBER_OF_GUESSES (3)
 #define STRIKES_TO_END (3)
 
-int numStrikes;
-int numBalls;
-int numOuts;
 /* results are for feedback to the user after each inning */
 int resultStrikes;
 int resultBalls;
@@ -22,120 +19,119 @@ int userNumbers[NUMBER_OF_GUESSES];
 int randomNumbers[NUMBER_OF_GUESSES];
 
 
-void Init() {
-	currentInning = 0;
-	numInnings = 0;
-	numStrikes = 0;
-	numBalls = 0;
-	numOuts = 0;
-	resultStrikes = 0;
-	resultBalls = 0;
-	resultOuts = 0;
-}
-
-void evaluateGuesses() {
-	size_t i;
-	size_t j;
-
-	for (i = 0; i < NUMBER_OF_GUESSES; i++)
-	{
-		if (userNumbers[i] == randomNumbers[i])
+	/* Generates random numbers between 0 and 9 */
+	void GenerateRandomNums() {
+		/* Use current time as seed for random generator */
+		srand((unsigned int)time(0));
+		do
 		{
-			numStrikes++;
-			resultStrikes++;
-			numInnings++;
-		}
-		else
+			randomNumbers[0] = rand() % 10;
+			randomNumbers[1] = rand() % 10;
+			randomNumbers[2] = rand() % 10;
+		} while (randomNumbers[1] == randomNumbers[0] || randomNumbers[2] == randomNumbers[0] || randomNumbers[2] == randomNumbers[1]);
+	}
+
+	void Init() {
+		currentInning = 0;
+		resultStrikes = 0;
+		resultBalls = 0;
+		resultOuts = 0;
+		GenerateRandomNums();
+	}
+
+	void EvaluateGuesses() {
+		size_t i;
+		size_t j;
+
+		for (i = 0; i < NUMBER_OF_GUESSES; i++)
 		{
-			for (j = 0; j < NUMBER_OF_GUESSES; j++)
+			if (userNumbers[i] == randomNumbers[i])
 			{
-				if (userNumbers[i] == randomNumbers[j])
+				resultStrikes++;
+				numInnings++;
+			}
+			else
+			{
+				for (j = 0; j < NUMBER_OF_GUESSES; j++)
 				{
-					numBalls++;
-					resultBalls++;
-					numInnings++;
-					break;
+					if (userNumbers[i] == randomNumbers[j])
+					{
+						resultBalls++;
+						numInnings++;
+						break;
+					}
 				}
 			}
-		}
 
-		if (currentInning == numInnings)
-		{
-			numOuts++;
-			resultOuts++;
-			numInnings++;
-		}
-		currentInning++;
-	}
-}
-
-void Update() {
-	char line[LINESIZE];
-
-	resultStrikes = 0;
-	resultBalls = 0;
-	resultOuts = 0;
-
-	while (1) 
-	{
-		printf("Please enter your %d numbers:\n", NUMBER_OF_GUESSES);
-		if (!fgets(line, LINESIZE, stdin)) /* if we fail to read a line */
-		{
-			clearerr(stdin);
-			break;
-		}
-		if (sscanf_s(line, "%d %d %d", &userNumbers[0], &userNumbers[1], &userNumbers[2]) == NUMBER_OF_GUESSES && (userNumbers[0] != userNumbers[1] && userNumbers[0] != userNumbers[2] && userNumbers[1] != userNumbers[2]))
-		{
-			/* Use current time as seed for random generator */
-			srand((unsigned int) time(0));
-			/* Generates random number between 0 and 9 */
-			
-			do
+			if (currentInning == numInnings)
 			{
-				randomNumbers[0] = rand() % 10;
-				randomNumbers[1] = rand() % 10;
-				randomNumbers[2] = rand() % 10;
-			} while (randomNumbers[1] == randomNumbers[0] || randomNumbers[2] == randomNumbers[0] || randomNumbers[2] == randomNumbers[1]);
-			
-			evaluateGuesses();
-
-			break;
+				resultOuts++;
+				numInnings++;
+			}
+			currentInning++;
 		}
-		else 
+	}
+
+	void RenderPrompt() {
+		printf("Please enter your %d numbers:\n", NUMBER_OF_GUESSES);
+	}
+
+	void RenderInvalidInput() {
+		fprintf(stderr, "You must enter %d unique numbers between 0 and 9, seperated by a space.\n", NUMBER_OF_GUESSES);
+	}
+
+	void Render() {
+		/* printf("CPU's numbers:\t%d %d %d\n", randomNumbers[0], randomNumbers[1], randomNumbers[2]); */
+		printf("Your numbers:\t%d %d %d\n", userNumbers[0], userNumbers[1], userNumbers[2]);
+		printf("%d Strike, %d Ball, %d Out\n\n", resultStrikes, resultBalls, resultOuts);
+		if (resultStrikes == STRIKES_TO_END)
 		{
-			fprintf(stderr, "You must enter %d unique numbers between 0 and 9, seperated by a space.\n", NUMBER_OF_GUESSES);
+			printf("You've gotten %d strikes. You win! \n", STRIKES_TO_END);
+
 		}
-	}
-}
-
-void Render() {
-	printf("CPU's numbers:\t%d %d %d\n", randomNumbers[0], randomNumbers[1], randomNumbers[2]);
-	printf("Your numbers:\t%d %d %d\n", userNumbers[0], userNumbers[1], userNumbers[2]);
-	printf("Result:\t%d Strike, %d Ball, %d Out\n", resultStrikes, resultBalls, resultOuts);
-	printf("Total:\t%d Strike, %d Ball, %d Out\n", numStrikes, numBalls, numOuts);
-	if (numStrikes >= STRIKES_TO_END)
-	{
-		printf("You've gotten %d strikes. You win! \n", STRIKES_TO_END);
 
 	}
-	
-}
 
-void Release() {
-	getchar();
-}
+	void Update() {
+		char line[LINESIZE];
 
-int main(void) {
-	Init();
-	while (1) 
-	{
-		Update();
-		Render();
-		if (numStrikes == STRIKES_TO_END)
+		resultStrikes = 0;
+		resultBalls = 0;
+		resultOuts = 0;
+
+		while (1) 
 		{
-			break;
+			if (!fgets(line, LINESIZE, stdin)) /* if we fail to read a line */
+			{
+				clearerr(stdin);
+			}
+			if (sscanf_s(line, "%d %d %d", &userNumbers[0], &userNumbers[1], &userNumbers[2]) == NUMBER_OF_GUESSES && (userNumbers[0] != userNumbers[1] && userNumbers[0] != userNumbers[2] && userNumbers[1] != userNumbers[2]))
+			{
+
+				EvaluateGuesses();
+
+				break;
+			}
+			else 
+			{
+				RenderInvalidInput();
+			}
 		}
 	}
-	Release();
-	return 0;
-}
+
+	void Release() {
+		getchar();
+	}
+		
+
+	int main(void) {
+		Init();
+		while (resultStrikes != STRIKES_TO_END)
+		{
+			RenderPrompt();
+			Update();
+			Render();
+		}
+		Release();
+		return 0;
+	}
