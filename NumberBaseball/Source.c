@@ -112,7 +112,8 @@ void Update()
 		{
 			clearerr(stdin);
 		}
-		if (sscanf_s(line, "%d %d %d", &userNumbers[0], &userNumbers[1], &userNumbers[2]) == NUMBER_OF_GUESSES && (userNumbers[0] != userNumbers[1] && userNumbers[0] != userNumbers[2] && userNumbers[1] != userNumbers[2]))
+		if (sscanf_s(line, "%d %d %d", &userNumbers[0], &userNumbers[1], &userNumbers[2]) == NUMBER_OF_GUESSES 
+			&& (userNumbers[0] != userNumbers[1] && userNumbers[0] != userNumbers[2] && userNumbers[1] != userNumbers[2]))
 		{
 
 			EvaluateGuesses();
@@ -130,7 +131,6 @@ void Release()
 {
 	getchar();
 }
-		
 
 int main(void) 
 {
